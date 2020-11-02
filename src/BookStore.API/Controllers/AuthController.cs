@@ -43,7 +43,7 @@ namespace BookStore.API.Controllers
             if (result.Succeeded)
             {
                 await _signInManager.SignInAsync(user, false);
-                return Ok(GenerateJwt());
+                return Ok(await GenerateJwt());
             }
 
             return BadRequest(result.Errors);
@@ -58,7 +58,7 @@ namespace BookStore.API.Controllers
                 loginDto.Password, false, true);
 
             if (result.Succeeded)
-                return Ok(GenerateJwt());
+                return Ok(await GenerateJwt());
 
             if (result.IsLockedOut)
                 return BadRequest("The user is temporarily blocked due to invalid attempts");
@@ -66,7 +66,7 @@ namespace BookStore.API.Controllers
             return BadRequest("Username or password is invalid");
         }
 
-        private string GenerateJwt()
+        private async Task<LoginResponseDto> GenerateJwt()
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
@@ -79,7 +79,13 @@ namespace BookStore.API.Controllers
             });
 
             var encodedToken = tokenHandler.WriteToken(token);
-            return encodedToken;
+
+            var response = new LoginResponseDto
+            {
+                AccessToken = encodedToken,
+                ExpiresIn = TimeSpan.FromHours(_appSettings.ExpirationHours).TotalSeconds
+            };
+            return response;
         }
     }
 }
