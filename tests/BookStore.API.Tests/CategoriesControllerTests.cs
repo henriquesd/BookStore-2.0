@@ -316,7 +316,7 @@ namespace BookStore.API.Tests
             return new Category()
             {
                 Id = 2,
-                Name = "IT"
+                Name = "Category Name 2"
             };
         }
 
