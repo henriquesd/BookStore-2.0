@@ -355,6 +355,22 @@ namespace BookStore.API.Tests
             Assert.NotNull(actual);
             Assert.IsType<OkObjectResult>(actual);
         }
+        
+        [Fact]
+        public async void SearchBookWithCategory_ShouldReturnNotFound_WhenBookWithSearchedValueDoesNotExist()
+        {
+            var book = CreateBook();
+            var bookList = new List<Book>();
+
+            _bookServiceMock.Setup(c => c.SearchBookWithCategory(book.Name)).ReturnsAsync(bookList);
+            _mapperMock.Setup(m => m.Map<IEnumerable<Book>>(It.IsAny<List<Book>>())).Returns(bookList);
+
+            var result = await _booksController.SearchBookWithCategory(book.Name);
+            var actual = (NotFoundObjectResult)result.Result;
+
+            Assert.Equal("None book was founded", actual.Value);
+            Assert.IsType<NotFoundObjectResult>(actual);
+        }
 
         [Fact]
         public async void SearchBookWithCategory_ShouldCallSearchBookWithCategoryFromService_JustOnce()
@@ -370,22 +386,6 @@ namespace BookStore.API.Tests
             await _booksController.SearchBookWithCategory(book.Name);
 
             _bookServiceMock.Verify(mock => mock.SearchBookWithCategory(book.Name), Times.Once);
-        }
-
-        [Fact]
-        public async void SearchBookWithCategory_ShouldReturnNotFound_WhenBookWithSearchedValueDoesNotExist()
-        {
-            var book = CreateBook();
-            var bookList = new List<Book>();
-
-            _bookServiceMock.Setup(c => c.SearchBookWithCategory(book.Name)).ReturnsAsync(bookList);
-            _mapperMock.Setup(m => m.Map<IEnumerable<Book>>(It.IsAny<List<Book>>())).Returns(bookList);
-
-            var result = await _booksController.SearchBookWithCategory(book.Name);
-            var actual = (NotFoundObjectResult)result.Result;
-
-            Assert.Equal("None book was founded", actual.Value);
-            Assert.IsType<NotFoundObjectResult>(actual);
         }
 
         private Book CreateBook()
