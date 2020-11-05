@@ -254,7 +254,6 @@ namespace BookStore.API.Tests
             var bookAddDto = new BookAddDto() { Name = book.Name };
             var bookResultDto = MapModelToBookResultDto(book);
 
-
             _mapperMock.Setup(m => m.Map<Book>(It.IsAny<BookAddDto>())).Returns(book);
             _bookServiceMock.Setup(c => c.Add(book)).ReturnsAsync(book);
             _mapperMock.Setup(m => m.Map<BookResultDto>(It.IsAny<Book>())).Returns(bookResultDto);
