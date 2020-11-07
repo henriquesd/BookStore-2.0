@@ -27,7 +27,7 @@ namespace BookStore.Infrastructure.Tests
         }
 
         [Fact]
-        public async void GetAll_ShouldReturnAListOfCategories_WhenCategoriesExist()
+        public async void GetAll_ShouldReturnAListOfCategory_WhenCategoriesExist()
         {
             await using (var context = new BookStoreDbContext(_options))
             {
@@ -57,7 +57,7 @@ namespace BookStore.Infrastructure.Tests
         }
 
         [Fact]
-        public async void GetAll_ShouldReturnListOfCategoriesWithCorrectValues_WhenCategoriesExist()
+        public async void GetAll_ShouldReturnAListOfCategoryWithCorrectValues_WhenCategoriesExist()
         {
             await using (var context = new BookStoreDbContext(_options))
             {
@@ -85,6 +85,20 @@ namespace BookStore.Infrastructure.Tests
 
                 Assert.NotNull(category);
                 Assert.IsType<Category>(category);
+            }
+        }
+
+        [Fact]
+        public async void GetById_ShouldReturnNull_WhenCategoryWithSearchedIdDoesNotExist()
+        {
+            await BookStoreHelperTests.CleanDataBase(_options);
+
+            await using (var context = new BookStoreDbContext(_options))
+            {
+                var categoryRepository = new CategoryRepository(context);
+                var category = await categoryRepository.GetById(1);
+
+                Assert.Null(category);
             }
         }
 
@@ -130,6 +144,30 @@ namespace BookStore.Infrastructure.Tests
         }
 
         [Fact]
+        public async void AddCategory_ShouldAddCategoryWithCorrectValues_WhenCategoryIsValid()
+        {
+            Category categoryToAdd = new Category();
+
+            await using (var context = new BookStoreDbContext(_options))
+            {
+                var categoryRepository = new CategoryRepository(context);
+                categoryToAdd = CreateCategory();
+
+                await categoryRepository.Add(categoryToAdd);
+            }
+
+            await using (var context = new BookStoreDbContext(_options))
+            {
+                var categoryResult = await context.Categories.Where(b => b.Id == 4).FirstOrDefaultAsync();
+
+                Assert.NotNull(categoryResult);
+                Assert.IsType<Category>(categoryToAdd);
+                Assert.Equal(categoryToAdd.Id, categoryResult.Id);
+                Assert.Equal(categoryToAdd.Name, categoryResult.Name);
+            }
+        }
+
+        [Fact]
         public async void UpdateCategory_ShouldUpdateCategoryWithCorrectValues_WhenCategoryIsValid()
         {
             Category categoryToUpdate = new Category();
@@ -156,13 +194,22 @@ namespace BookStore.Infrastructure.Tests
             }
         }
 
+        private Category CreateCategory()
+        {
+            return new Category()
+            {
+                Id = 4,
+                Name = "Category Test 4",
+            };
+        }
+
         private List<Category> CreateCategoryList()
         {
             return new List<Category>()
             {
-                new Category {Id = 1, Name = "Category 1"},
-                new Category {Id = 2, Name = "Category 2"},
-                new Category {Id = 3, Name = "Category 3"}
+                new Category {Id = 1, Name = "Category Test 1"},
+                new Category {Id = 2, Name = "Category Test 2"},
+                new Category {Id = 3, Name = "Category Test 3"}
             };
         }
     }
