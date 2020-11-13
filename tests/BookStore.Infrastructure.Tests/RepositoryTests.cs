@@ -8,22 +8,17 @@ using Xunit;
 
 namespace BookStore.Infrastructure.Tests
 {
-    public class CategoryRepositoryTests
+    /// <summary>
+    /// This is another example of how to create tests for the abstract base class
+    /// </summary>
+    public class RepositoryTests
     {
         private readonly DbContextOptions<BookStoreDbContext> _options;
 
-        /// <summary>
-        /// The CategoryRepository class only use the methods from the Repository base class
-        /// </summary>
-        public CategoryRepositoryTests()
+        public RepositoryTests()
         {
-            // Use this when using a SQLite InMemory database
             _options = BookStoreHelperTests.BookStoreDbContextOptionsSQLiteInMemory();
             BookStoreHelperTests.CreateDataBaseSQLiteInMemory(_options);
-
-            // Use this when using a EF Core InMemory database
-            //_options = BookStoreHelperTests.BookStoreDbContextOptionsEfCoreInMemory();
-            //BookStoreHelperTests.CreateDataBaseEfCoreInMemory(_options);
         }
 
         [Fact]
@@ -31,9 +26,9 @@ namespace BookStore.Infrastructure.Tests
         {
             await using (var context = new BookStoreDbContext(_options))
             {
-                var categoryRepository = new CategoryRepository(context);
+                var repository = new RepositoryConcreteClass(context);
 
-                var categories = await categoryRepository.GetAll();
+                var categories = await repository.GetAll();
 
                 Assert.NotNull(categories);
                 Assert.IsType<List<Category>>(categories);
@@ -47,8 +42,8 @@ namespace BookStore.Infrastructure.Tests
 
             await using (var context = new BookStoreDbContext(_options))
             {
-                var categoryRepository = new CategoryRepository(context);
-                var categories = await categoryRepository.GetAll();
+                var repository = new RepositoryConcreteClass(context);
+                var categories = await repository.GetAll();
 
                 Assert.NotNull(categories);
                 Assert.Empty(categories);
@@ -62,8 +57,8 @@ namespace BookStore.Infrastructure.Tests
             await using (var context = new BookStoreDbContext(_options))
             {
                 var expectedCategories = CreateCategoryList();
-                var categoryRepository = new CategoryRepository(context);
-                var categoryList = await categoryRepository.GetAll();
+                var repository = new RepositoryConcreteClass(context);
+                var categoryList = await repository.GetAll();
 
                 Assert.Equal(3, categoryList.Count);
                 Assert.Equal(expectedCategories[0].Id, categoryList[0].Id);
@@ -80,8 +75,8 @@ namespace BookStore.Infrastructure.Tests
         {
             await using (var context = new BookStoreDbContext(_options))
             {
-                var categoryRepository = new CategoryRepository(context);
-                var category = await categoryRepository.GetById(2);
+                var repository = new RepositoryConcreteClass(context);
+                var category = await repository.GetById(2);
 
                 Assert.NotNull(category);
                 Assert.IsType<Category>(category);
@@ -95,8 +90,8 @@ namespace BookStore.Infrastructure.Tests
 
             await using (var context = new BookStoreDbContext(_options))
             {
-                var categoryRepository = new CategoryRepository(context);
-                var category = await categoryRepository.GetById(1);
+                var repository = new RepositoryConcreteClass(context);
+                var category = await repository.GetById(1);
 
                 Assert.Null(category);
             }
@@ -107,38 +102,13 @@ namespace BookStore.Infrastructure.Tests
         {
             await using (var context = new BookStoreDbContext(_options))
             {
-                var categoryRepository = new CategoryRepository(context);
+                var repository = new RepositoryConcreteClass(context);
 
                 var expectedCategories = CreateCategoryList();
-                var category = await categoryRepository.GetById(2);
+                var category = await repository.GetById(2);
 
                 Assert.Equal(expectedCategories[1].Id, category.Id);
                 Assert.Equal(expectedCategories[1].Name, category.Name);
-            }
-        }
-
-        [Fact]
-        public async void Remove_ShouldRemoveCategory_WhenCategoryIsValid()
-        {
-            Category categoryToRemove = new Category();
-
-            await using (var context = new BookStoreDbContext(_options))
-            {
-                categoryToRemove = await context.Categories.Where(c => c.Id == 2).FirstOrDefaultAsync();
-            }
-
-            await using (var context = new BookStoreDbContext(_options))
-            {
-                var categoryRepository = new CategoryRepository(context);
-
-                await categoryRepository.Remove(categoryToRemove);
-            }
-
-            await using (var context = new BookStoreDbContext(_options))
-            {
-                var categoryRemoved = await context.Categories.Where(c => c.Id == 2).FirstOrDefaultAsync();
-
-                Assert.Null(categoryRemoved);
             }
         }
 
@@ -149,10 +119,10 @@ namespace BookStore.Infrastructure.Tests
 
             await using (var context = new BookStoreDbContext(_options))
             {
-                var categoryRepository = new CategoryRepository(context);
+                var repository = new RepositoryConcreteClass(context);
                 categoryToAdd = CreateCategory();
 
-                await categoryRepository.Add(categoryToAdd);
+                await repository.Add(categoryToAdd);
             }
 
             await using (var context = new BookStoreDbContext(_options))
@@ -178,8 +148,8 @@ namespace BookStore.Infrastructure.Tests
 
             await using (var context = new BookStoreDbContext(_options))
             {
-                var categoryRepository = new CategoryRepository(context);
-                await categoryRepository.Update(categoryToUpdate);
+                var repository = new RepositoryConcreteClass(context);
+                await repository.Update(categoryToUpdate);
             }
 
             await using (var context = new BookStoreDbContext(_options))
@@ -190,6 +160,31 @@ namespace BookStore.Infrastructure.Tests
                 Assert.IsType<Category>(updatedCategory);
                 Assert.Equal(categoryToUpdate.Id, updatedCategory.Id);
                 Assert.Equal(categoryToUpdate.Name, updatedCategory.Name);
+            }
+        }
+
+        [Fact]
+        public async void Remove_ShouldRemoveCategory_WhenCategoryIsValid()
+        {
+            Category categoryToRemove = new Category();
+
+            await using (var context = new BookStoreDbContext(_options))
+            {
+                categoryToRemove = await context.Categories.Where(c => c.Id == 2).FirstOrDefaultAsync();
+            }
+
+            await using (var context = new BookStoreDbContext(_options))
+            {
+                var repository = new RepositoryConcreteClass(context);
+
+                await repository.Remove(categoryToRemove);
+            }
+
+            await using (var context = new BookStoreDbContext(_options))
+            {
+                var categoryRemoved = await context.Categories.Where(c => c.Id == 2).FirstOrDefaultAsync();
+
+                Assert.Null(categoryRemoved);
             }
         }
 
@@ -206,10 +201,19 @@ namespace BookStore.Infrastructure.Tests
         {
             return new List<Category>()
             {
-                new Category {Id = 1, Name = "Category Test 1"},
-                new Category {Id = 2, Name = "Category Test 2"},
-                new Category {Id = 3, Name = "Category Test 3"}
+                new Category { Id = 1, Name = "Category Test 1" },
+                new Category { Id = 2, Name = "Category Test 2" },
+                new Category { Id = 3, Name = "Category Test 3" }
             };
         }
+
+    }
+}
+
+internal class RepositoryConcreteClass : Repository<Category>
+{
+    internal RepositoryConcreteClass(BookStoreDbContext bookStoreDbContext) : base(bookStoreDbContext)
+    {
+
     }
 }
